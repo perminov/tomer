@@ -16,6 +16,10 @@ class Admin_UrlsController extends Indi_Controller_Admin {
         if (!$proxy = $model->fetchRow(['`usedAt` = "0000-00-00 00:00:00"', '`toggle` = "y"'], 'RAND()'))
             $proxy = $model->fetchRow(null, '`usedAt` ASC');
 
+        // Prepare headers
+        foreach (Indi::model('Header')->fetchAll('`toggle` = "y"', '`move` ASC') as $headerR)
+            $hdrA []= $headerR->name . ': ' . $headerR->value;
+            
         // Prepare curl session options
         $optA = [
             CURLOPT_URL => $this->row->title,
@@ -23,7 +27,8 @@ class Admin_UrlsController extends Indi_Controller_Admin {
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HEADER => true,
             //CURLOPT_HTTPPROXYTUNNEL => true,
-            //CURLOPT_PROXY => $proxy->title,
+            CURLOPT_PROXY => $proxy->title,
+            CURLOPT_TIMEOUT => 20,
             //CURLOPT_PROXYTYPE => CURLPROXY_SOCKS5
         ];
 
@@ -34,7 +39,7 @@ class Admin_UrlsController extends Indi_Controller_Admin {
         $response = curl_exec($curl);
 
         // Info about what proxy was used
-        $info = 'Proxy: ' . $proxy->title . "\n";
+        $info = 'Proxy: ' . $proxy->title . "\n" . '========================' . "\n";
 
         // If response is boolean false - return curl error
         if ($response === false) jflush(false, nl2br($info) . 'curl_exec() === false: ' . curl_error($curl));
