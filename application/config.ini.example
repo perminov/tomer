@@ -23,3 +23,7 @@ path = www/data/upload
 
 [ckeditor]
 uploadPath = fck
+
+[proxy]
+path = ipv4:port
+auth = user:pass
