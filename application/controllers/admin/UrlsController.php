@@ -40,7 +40,7 @@ class Admin_UrlsController extends Indi_Controller_Admin {
         if ($response === false) jflush(false, 'curl_exec() === false: ' . curl_error($curl));
 
         // Save response
-        $this->row->assign(['response' => $response])->save();
+        $this->row->assign(['response' => $response, 'status' => 'y'])->save();
 
         // Flush response
         jflush(true, '<textarea style="width: 500px; height: 400px;">' . $response . '</textarea>');
