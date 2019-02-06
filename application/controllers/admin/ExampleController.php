@@ -68,7 +68,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                 'url' => $m[1],
                 'display_url' => $m[4],
                 'title' => $m[3],
-                'description' => array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $chunk))))
+                'description' => strip_tags(array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $chunk)))))
             ];
         }
 
@@ -107,7 +107,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                     $results[$kind] []= [
                         'url' => $m[1],
                         'title' => $m2[1],
-                        'description' => $m2[2],
+                        'description' => strip_tags($m2[2]),
                         'display_url' => $m2[3]
                     ];
                 }
