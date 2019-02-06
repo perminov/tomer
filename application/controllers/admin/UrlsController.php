@@ -39,8 +39,19 @@ class Admin_UrlsController extends Indi_Controller_Admin {
         // If response is boolean false - return curl error
         if ($response === false) jflush(false, 'curl_exec() === false: ' . curl_error($curl));
 
+        // Parse og:title
+        if (preg_match('~<meta name="og:title" content="([^"]+) \| LinkedIn"~', $response, $m))
+            $this->row->ogTitle = $m[1];
+        
+        // Parse og:image
+        if (preg_match('~<meta property="og:image" content="([^"]+)"~', $response, $m))
+            $this->row->ogImage = $m[1];
+            
+        // Get json
+        $json = array_shift(explode('</script>', array_pop(explode('<script type="application/ld+json">', $response))));
+        
         // Save response
-        $this->row->assign(['response' => $response, 'status' => 'y'])->save();
+        $this->row->assign(['response' => $response, 'scraped' => 'y', 'json' => $json])->save();
 
         // Flush response
         jflush(true, '<textarea style="width: 500px; height: 400px;">' . $response . '</textarea>');
