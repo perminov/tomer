@@ -39,6 +39,9 @@ class Admin_ExampleController extends Indi_Controller_Admin {
         // Results array, to be flushed as response
         $results = [];
 
+        // Get time, spent on arriving here
+        $init = mt();
+        
         // Get main results
         $ires = array_shift(explode('</div><!--z-->', array_pop(explode('id="ires">', $html))));
 
@@ -134,7 +137,13 @@ class Admin_ExampleController extends Indi_Controller_Admin {
         $response = ['status' => 1, 'results' => $results];
 
         // View response
-        jflush(true, '<textarea style="width: 500px; height: 400px;">' . print_r($response, true) . '</textarea>');
+        jflush(true, '<textarea style="width: 500px; height: 400px;">' 
+            . 'Init time ' . $init . "\n"
+            . 'Parse time ' . mt() . "\n"
+            . 'Memory usage ' . mu() . "\n"
+            . 'Memory peak usage ' . mpu() . "\n"
+            . print_r($response, true) 
+            . '</textarea>');
 
         // Flush response
         // echo json_encode($response); exit;
