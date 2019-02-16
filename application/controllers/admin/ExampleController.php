@@ -41,96 +41,205 @@ class Admin_ExampleController extends Indi_Controller_Admin {
 
         // Get time, spent on arriving here
         $init = mt();
-        
-        // Get main results
-        $ires = array_shift(explode('</div><!--z-->', array_pop(explode('id="ires">', $html))));
 
-        // Split
-        $chunkA = preg_split('~<div class="g"><!--m-->|<!--n--></div>~', $ires);
+        // Total counter
+        $total = 0;
 
-        // Foreach chunk check whether contained html, is related to one of organic results
-        foreach ($chunkA as $idx => $chunk)
-            if (!preg_match('~<div class="rc"><div class="r">~', $chunk))
-                unset($chunkA[$idx]);
+        // Get 'ad_top' elements
+        $ad_top = between('~<li class="ads-ad" data-bg="1" data-hveid="[^"]+">~', '</li>',
+            between('~<div id="taw">~', '</div><div class="med" id="res" role="main">', $html)[0]);
 
-        // Reset keys
-        $chunkA = array_values($chunkA);
+        // Foreach found
+        foreach ($ad_top as $idx => $_) {
 
-        // Foreach
-        foreach ($chunkA as $idx => $chunk) {
+            // Pick url, display_url and title
+            preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
+                . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
+                . '<br><div class="ads-visurl"><span class="[^"]+">Ad</span>'
+                . '<cite class="[^"]+">([^<]+)</cite>‎</div></a>~', $_, $m1);
 
-            // Capture data
-            preg_match('~<div class="rc"><div class="r">'
-                . '<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>'
-                . '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~', $chunk, $m);
-
-            //
-            $results['organic'] []= [
-                //'rank' => $idx + 1,
-                //'position' => $idx + 1,
-                'url' => $m[1],
-                'display_url' => $m[4],
-                'title' => $m[3],
-                'description' => strip_tags(array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $chunk)))))
+            // Add to results
+            $results['ad_top'] []= [
+                'rank' => $idx + 1,
+                'position' => ++$total,
+                'url' => $m1[1],
+                'display_url' => $m1[3],
+                'title' => $m1[2],
+                'description' => strip_tags(between('~<div class="[^"]+ads-creative">~', '</div>', $_)[0])
             ];
         }
 
-        // Get <g-section-with-header> elements' inner html
-        $gsectA = [];
-        foreach (preg_split('~<g-section-with-header[^>]+>~', $html) as $i => $_)
-            if ($i) $gsectA []= array_shift(explode('</g-section-with-header>', $_));
+        // Get #rso-node contents
+        $rso = between('~<div eid="[^"]+" id="rso">~', '</div><!--z-->',
+            between('~<div class="med" id="res" role="main">~', '</div><div id="bottomads"', $html)[0])[0];
 
+        // Get opening div
+        $div = Indi::rexm('~^<div class="[^"]+">~', $rso, 0);
 
-        // Foreach found items
-        foreach ($gsectA as $gsect) {
+        // Get groups of results
+        $groupA = explode('</div>' . $div, '</div>' . $rso . $div); array_shift($groupA); array_pop($groupA);
 
-            // Detect <g-section-with-header> element's kind
-            if (preg_match('~<div class="[^"]+"><h3 aria-level="2" role="heading">(Top stories|Videos)</h3>~', $gsect, $m)) {
-                $kind = $m[1] == 'Top stories' ? 'top_stories' : 'videos';
-            } else if (preg_match('~<h3 class="[^"]+" aria-level="2" role="heading" style="text-align:left">Searches related to [^<]+</h3>~', $gsect, $m)) {
-                $kind = 'related';
-            }
+        foreach ($groupA as $groupI) {
 
-            // If kind is 'videos'
-            if ($kind == 'videos') {
+            // If group contains results, represented as a carousel
+            if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
-                // Get cards
-                $cardA = [];
-                foreach (preg_split('~<g-inner-card[^>]+>~', $gsect) as $i => $_)
-                    if ($i) $cardA []= array_shift(explode('</g-inner-card>', $_));
+                // Get result type
+                $type = $results['organic'] ? 'videos' : 'top_stories';
 
-                // Foreach card
-                foreach($cardA as $card) {
+                // Get array of items' html
+                $itemA = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $items);
 
-                    // Pick card props
-                    preg_match('~^<div class="[^"]+"><a href="([^"]+)"~', $card, $m);
-                    preg_match('~aria-level="3" role="heading" style="[^"]+">([^<]+)</div></div></a><div class="[^"]+"><div class="[^"]+" style="[^"]+">([^<]+)</div></div><div class="[^"]+"><div class="[^"]+" style="[^"]+"><span class="[^"]+" style="[^"]+">([^<]+)</span> - [a-zA-Z]{3} [0-9]{1,2}, [0-9]{4}</div></div></div>~', $card, $m2);
+                // Foreach item
+                foreach ($itemA as $idx => $item) {
 
-                    // Assign
-                    $results[$kind] []= [
+                    // If result type is 'top_stories' - pick params and append into $results array
+                    if ($type == 'top_stories') $results[$type] []= [
+                        'rank' => $idx + 1,
+                        'position' => ++$total,
+                        'url' => Indi::rexm('~^<a style="text-decoration: none" href="([^"]+)"~', $item, 1),
+                        'title' => Indi::rexm('~role="heading">([^<]+)</div>~', $item, 1),
+                        'description' => Indi::rexm('~<cite>([^<]+)</cite>~', $item, 1)
+                    ];
+
+                    // Else if result type is 'videos'
+                    else if ($type = 'videos') {
+
+                        // Pick props
+                        preg_match('~^<div class="[^"]+"><a href="([^"]+)"~', $item, $m);
+                        preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div></div>'
+                            . '</a><div class="[^"]+"><div class="[^"]+" style="[^"]+">([^<]*)</div>'
+                            . '</div><div class="[^"]+"><div class="[^"]+" style="[^"]+">'
+                            . '<span class="[^"]+" style="[^"]+">[^<]*</span>~', $item, $m2);
+
+                        // Assign and append
+                        $results[$type] []= [
+                            'rank' => $idx + 1,
+                            'position' => ++$total,
+                            'url' => $m[1],
+                            'title' => $m2[1],
+                            'description' => strip_tags($m2[2]),
+                        ];
+                    }
+                }
+
+            // Else it's organic results
+            } else if ($itemA = between('~<div class="g"><!--m-->~', '<!--n--></div>', $groupI)) {
+
+                // Foreach
+                foreach ($itemA as $idx => $item) {
+
+                    // Capture data
+                    preg_match('~<div class="rc"><div class="r">'
+                        . '<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>'
+                        . '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~', $item, $m);
+
+                    // Assign and append
+                    $results['organic'] []= [
+                        'rank' => count($results['organic']) + 1,
+                        'position' => ++$total,
                         'url' => $m[1],
-                        'title' => $m2[1],
-                        'description' => strip_tags($m2[2]),
-                        'display_url' => $m2[3]
+                        'display_url' => $m[4],
+                        'title' => $m[3],
+                        'description' => strip_tags(array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $item)))))
                     ];
                 }
 
-            // Else if kind is 'related'
-            } else if ($kind == 'related') {
+            // Else if it's twitter results
+            } else if (preg_match('~<div class="g"><div class="s"><div class="[^"]+"><div class="r"><h3 class="[^"]+"><g-link>~', $groupI)) {
 
-                // Pick slices
-                $itemA = [];
-                foreach (preg_split('~<p class="[^"]+"><a href="/search\?q=[^"]+">~', $gsect) as $i => $_)
-                    if ($i) $itemA []= array_shift(explode('</a></p>', $_));
+                // Pick props
+                preg_match('~<g-link><a href="([^"]+)"[^>]+>([^<]+)</a></g-link>~', $groupI, $m1);
+                preg_match('~<cite[^>]+>([^<]+)</cite>~', $groupI, $m2);
 
-                // Foreach slice
-                foreach ($itemA as $itemI)
+                // Assign and append
+                $results['organic'] []= [
+                    'rank' => count($results['organic']) + 1,
+                    'position' => ++$total,
+                    'url' => $m1[1],
+                    'display_url' => $m2[1],
+                    'title' => $m1[2],
+                    'description' => strip_tags(between(
+                        '~<g-inner-card[^>]*><!--m--><div class="tw-res"[^>]*><div class="[^"]+" aria-level="3" role="heading">~',
+                        '~</div><div class="[^"]+"><div><span class="f">~', $groupI)[0])
+                ];
 
-                    // Assign to results
-                    $results[$kind] []= [
-                        'title' => strip_tags($itemI),
+            // Else if it's snack_pack results
+            } else if (preg_match('~id="lu_map"~', $groupI)) {
+
+                // Get items
+                foreach(between('~<!--m--><div[^>]+><div[^>]+>~', '</div></div><!--n-->', $groupI) as $item) {
+
+                    // Pick props
+                    preg_match('~data-cid="([^"]+)"~', $item, $m1);
+                    preg_match('~href="([^"]+)" data-ved="[^"]+" ping="[^"]+"~', $item, $m2);
+                    preg_match('~<div class="dbg0pd" aria-level="3" role="heading"><span>([^<]+)</span></div>~', $item, $m3);
+                    $desc = between('~<span class="[a-zA-Z0-9]+__details[^"]*">~', '</span></div></a>', $item)[0];
+
+                    // Assign and append
+                    $results['snack_pack'] []= [
+                        'rank' => count($results['snack_pack']) + 1,
+                        'position' => ++$total,
+                        'cid' => $m1[1],
+                        'url' => $m2[1],
+                        'title' => $m3[1],
+                        'description' => strip_tags(preg_replace('~__wrapped">~', '$0 ', $desc))
                     ];
+                }
             }
+        }
+
+        // Try to find 'ad_bottom' elements
+        $ad_bottom = between('~<li class="ads-ad" data-bg="1" data-hveid="[^"]+">~', '</li>',
+            between('~<div id="bottomads">~', '</div><div class="med" id="extrares">', $html)[0]);
+
+        // Foreach found
+        foreach ($ad_bottom as $idx => $_) {
+
+            // Pick url, display_url and title
+            preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
+                . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
+                . '<br><div class="ads-visurl"><span class="[^"]+">Ad</span>'
+                . '<cite class="[^"]+">([^<]+)</cite>‎</div></a>~', $_, $m1);
+
+            // Add to results
+            $results['ad_bottom'] []= [
+                'rank' => $idx + 1,
+                'position' => ++$total,
+                'url' => $m1[1],
+                'display_url' => $m1[3],
+                'title' => $m1[2],
+                'description' => strip_tags(between('~<div class="[^"]+ads-creative">~', '</div>', $_)[0])
+            ];
+        }
+
+        // Try to find 'related' elements
+        $related = between('~<p class="[^"]+"><a href="/search\?q=[^"]+">~', '</a></p>',
+            between('~<div id="brs"[^>]*><g-section-with-header[^>]*~', '</g-section-with-header>',
+            between('~<div class="med" id="extrares">~', '</div><div><div id="foot"', $html)[0])[0]);
+
+        // Foreach found - assign to results
+        foreach ($related as $idx => $_) $results['related'] []= [
+            'rank' => $idx + 1,
+            'position' => ++$total,
+            'title' => strip_tags($_),
+        ];
+
+        // If right block is given
+        if (($rhs = between('~<div id="rhs">~', '<div id="bfoot">', $html)[0])
+            && $title = strip_tags(between('~<div class="kno-ecr-pt kno-fb-ctx gsmt"[^>]+>~', '</div>', $rhs)[0])) {
+
+            // Pick props
+            preg_match('~<!--m--><div><a class="[^"]*ellip kno-fb-ctx" role="button" href="([^"]+)"[^>]*>~', $rhs, $m1);
+            preg_match('~<span class="ellip">([^<]+)</span></a></div><!--n--></div>~', $rhs, $m2);
+
+            // Assign and append
+            $results['featured_snippet'] = [
+                'title' => $title,
+                'url' => $m1[1],
+                'display_url' => $m2[1],
+                'description' => between('~<div class="kno-rdesc[^"]+"[^>]*><div><h3[^>]+>[^<]+</h3><span>~', '</span>', $rhs)[0]
+            ];
         }
 
         // Build response
