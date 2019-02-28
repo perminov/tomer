@@ -85,7 +85,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
             foreach (rootNodes($rso) as $node) {
 
                 // Get top stories html
-                if ($top = between('~^<div><g-card[^>]+>~', '</g-card></div>', $node)[0]
+                if (($top = between('~^<div><g-card[^>]+>~', '</g-card></div>', $node)[0])
                     && !$results['top_stories'] && !$results['organic'] && !$results['featured_snippet']) {
 
                     // Append inline top stories
@@ -99,14 +99,20 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                         ];
 
                     // Append horizontal-scrollable top stories
-                    if ($ul = between('~<g-scrolling-carousel[^>]+><div[^>]*><div[^>]*><div[^>]*><ul[^>]*>~', '</ul></div></div>', $node)[0])
-                        foreach (between('~<g-inner-card[^>]*>~', '</g-inner-card>', $ul) as $item)
+                    if ($ul = between('~<g-scrolling-carousel[^>]+><div[^>]*><div[^>]*><div[^>]*><ul[^>]*>~', '</ul></div></div>', $top)[0]) {
+                    
+                        // 
+                        foreach ($horizontal = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $ul) as $item)
                             $results['top_stories'] []= [
                                 'rank' => count($results['top_stories']) + 1,
-                                'position' => ++$total,
+                                'position' => $total + 1,
                                 'url' => Indi::rexm('~^<a[^>]+href="([^"]+)"~', $item, 1),
                                 'title' => Indi::rexm('~role="heading">([^<]+)</div>~', $item, 1),
                             ];
+                            
+                        // 
+                        if ($horizontal) $total ++;
+                    }
 
                 // Else if it's a snack_pack
                 } else if (preg_match('~<div class="[^"]*tile-container[^"]*"~', $node)) {
@@ -131,7 +137,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                         ];
                     }
 
-                // Else if it's a featured snipped item
+                // Else if it's a featured snippet item
                 } else if (preg_match('~<div class="kp-blk knowledge-panel[^"]*"~', $node)) {
 
                     // Get .kp-body contents
@@ -164,7 +170,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
 
                         //
                         $results['organic'] []= [
-                            'rank' => 1,
+                            'rank' => count($results['organic']) + 1,
                             'position' => ++$total,
                             'url' => $m1[1],
                             'display_url' => $m2[2],
@@ -198,13 +204,16 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                             // Assign and append
                             $results['videos'] []= [
                                 'rank' => count($results['videos']) + 1,
-                                'position' => ++$total,
+                                'position' => $total + 1,
                                 'url' => $m1[1],
                                 'display_url' => $m0[3],
                                 'title' => $m2[1],
                                 'description' => $m0[2]
                             ];
                         }
+                        
+                        // 
+                        if ($results['videos']) $total ++;
                     }
                 }
             }
@@ -272,8 +281,27 @@ class Admin_ExampleController extends Indi_Controller_Admin {
             // Foreach group
             foreach ($groupA as $groupI) {
 
-                // If group contains results, represented as a carousel
-                if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
+                // If group contains results, having .dbsr css class
+                if ($items = innerHtml('~<div class="dbsr"[^>]*>~', $groupI)) {
+                    
+                    // Foreach result item
+                    foreach ($items as $item) {
+                    
+                        // Pick props
+                        preg_match('~</div></div><div[^>]+>(.+)?(?=</div>)</div></div></div></a>~', $item, $m);
+                    
+                        // Assign and append
+                        $results['top_stories'] []= [
+                            'rank' => $idx + 1,
+                            'position' => ++$total,
+                            'url' => Indi::rexm('~^<a href="([^"]+)"~', $item, 1),
+                            'title' => between('~<div class="[^"]+" style="-webkit-line-clamp:2"><div class="[^"]+" style="-webkit-line-clamp:2">~', '</div></div>', $item)[0],
+                            'description' => strip_tags(preg_replace('~</span><span[^>]*>~', ' ', $m[1]))
+                        ];                    
+                    }
+            
+                // Else if group contains results, represented as a carousel
+                } if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
                     // Get result type
                     $type = $results['organic'] ? 'videos' : 'top_stories';
@@ -306,7 +334,7 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                             // Assign and append
                             $results[$type] []= [
                                 'rank' => $idx + 1,
-                                'position' => ++$total,
+                                'position' => $total + 1,
                                 'url' => $m[1],
                                 'title' => $m2[1],
                                 'description' => strip_tags($m2[2]),
@@ -314,6 +342,9 @@ class Admin_ExampleController extends Indi_Controller_Admin {
                         }
                     }
 
+                    // 
+                    if (count($results['videos'])) $total ++;
+                    
                 // Else it's organic results
                 } else if ($itemA = between('~<div class="g"><!--m-->~', '<!--n--></div>', $groupI)) {
 
