@@ -36,6 +36,9 @@ class Admin_ExampleController extends Indi_Controller_Admin {
         // Get html
         $html = $this->row->html;
 
+        // Create gz-file
+        $this->row->file('gzipped', 'gz', gzencode($html));
+
         // Check whether it's mobile version's html
         $mobile = preg_match('~<div id="sfooter"~', $html);
 
