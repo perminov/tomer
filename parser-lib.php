@@ -10,6 +10,18 @@ $mu = 0; function mu(){$m = memory_get_usage(); $ret = $m - $GLOBALS['mu']; $GLO
 $mpu = 0; function mpu(){$m = memory_get_peak_usage(); $ret = $m - $GLOBALS['mpu']; $GLOBALS['mpu'] = $m; return number_format($ret);} mpu();
 
 /**
+ * Displays formatted view of a given value
+ *
+ * @param mixed $value
+ * @return null
+ */
+function d($value) {
+
+    // Wrap the $value with the '<pre>' tag, and write it to the output
+    echo '<pre>'; print_r($value); echo '</pre>';
+}
+
+/**
  * Flush the json-encoded message, containing `status` property, and other optional properties
  *
  * @param $success
@@ -91,7 +103,7 @@ function between($since, $until, $html) {
     // Collect items
     $itemA = array();
     foreach ($splitFn_since($since, $html) as $i => $_)
-        if ($i) $itemA []= array_shift($splitFn_until($until, $_));
+        if ($i && $chunkA = $splitFn_until($until, $_)) $itemA []= array_shift($chunkA);
 
     // Return collected
     return $itemA;
@@ -415,6 +427,24 @@ function ar($items, $allowEmpty = false) {
 
     // Else return array, containing $items arg as a single item
     return array($items);
+}
+
+/**
+ * Toggle on/off implicit flushing
+ *
+ * @static
+ * @param $flag bool
+ */
+function iflush($flag) {
+
+    // Set up no cache
+    if ($flag && !headers_sent()) header('Cache-Control: no-cache');
+
+    // Set up output buffering implicit flush mode
+    ob_implicit_flush($flag);
+
+    // Flush
+    if ($flag) ob_end_flush();
 }
 
 // Set up error handlers for fatal errors, and other errors

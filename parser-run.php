@@ -2,14 +2,35 @@
 // Load auxiliary functions
 require 'parser-lib.php';
 
+// Set error reporting
+error_reporting (E_ALL & ~E_NOTICE);
+
+// Get headers
+$headers = apache_request_headers();
+
+// Get compression type
+$compression = $headers['Content-Encoding'];
+
 // Get raw request body
 $body = file_get_contents('php://input');
 
 // Check that request body is not empty
 if (!strlen($body)) jflush(false, 'Request body is empty');
 
-// Try to decode base64-encoded param
-if (!$html = gzdecode($body)) jflush(false, 'Unable to un-gzip the request body');
+// If compression is brotli
+if ($compression == 'br') {
+    
+    // Try to decode brotli-compressed contents
+    if (!$html = brotli_uncompress($body)) jflush(false, 'Unable to un-brotli the request body');
+
+// Else if compression is gz
+} else if ($compression == 'gzip' || $compression == 'x-gzip') {
+
+    // Try to decode gz-compressed contents
+    if (!$html = gzdecode($body)) jflush(false, 'Unable to un-gzip the request body');
+    
+// Else assume that content is not compressed html
+} else $html = $body;
 
 // Check whether it's mobile version's html
 $mobile = preg_match('~<div id="sfooter"~', $html);
@@ -334,6 +355,11 @@ if ($mobile) {
                     . '<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>'
                     . '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~', $item, $m);
 
+                // Get description
+                $desc = explode('<div class="s"><div><span class="st">', $item);
+                $desc = explode('</span>', array_pop($desc));
+                $desc = strip_tags(array_shift($desc));
+                    
                 // Assign and append
                 $results['organic'] []= [
                     'rank' => count($results['organic']) + 1,
@@ -341,7 +367,7 @@ if ($mobile) {
                     'url' => $m[1],
                     'display_url' => $m[4],
                     'title' => $m[3],
-                    'description' => strip_tags(array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $item)))))
+                    'description' => $desc
                 ];
             }
 
@@ -449,5 +475,11 @@ if (($rhs = between('~<div id="rhs">~', '<div id="bfoot">', $html)[0])
 // Build response
 $response = ['status' => 1, 'results' => $results];
 
+// Set json-encoding flags
+$flags = JSON_UNESCAPED_UNICODE;
+
+// Make pretty
+if ($headers['Accept-Format'] == 'pretty') $flags |= JSON_PRETTY_PRINT;
+
 // Flush response
-echo json_encode($response); exit;
+echo json_encode($response, $flags); exit;
