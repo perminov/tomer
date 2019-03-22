@@ -456,8 +456,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             ];
         }
 
-        // Reset diff
+        // Reset organic compare results
         foreach (['display_url', 'title', 'description'] as $prop) $this->{'organic_' . $prop} = '0 / 0 / 0';
+        $this->organic0 = $this->organic1 = 0;
 
         // Save
         $this->assign([
@@ -526,8 +527,32 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     // Detect diff type
                     $idx = false; if ($old && !$new) $idx = 0; else if (!$old && $new) $idx = 2; else if ($old != $new) $idx = 1;
 
-                    // Diff type is not false - increment counter for that certain diff type
-                    if ($idx !== false) $this->_modified['organic_' . $prop][$idx] ++;
+                    // Diff type is not false
+                    if ($idx !== false) {
+
+                        // If both results are not empty, but not equal
+                        if ($idx == 1) {
+
+                            // Detect similarity
+                            similar_text($old, $new, $sim);
+
+                            // If similarity is less than 95% -
+                            if ($sim < 50) {
+
+                                // Increment counter for that certain diff type
+                                $this->_modified['organic_' . $prop][$idx] ++;
+
+                                // Collect
+                                $cmp['organic'][$url][$prop] = [
+                                    'old' => $old,
+                                    'new' => $new,
+                                    'sim' => $sim
+                                ];
+                            }
+
+                        // Increment counter for that certain diff type
+                        } else $this->_modified['organic_' . $prop][$idx] ++;
+                    }
                 }
             }
 
@@ -535,6 +560,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             foreach (['display_url', 'title', 'description'] as $prop)
                 $this->{'organic_' . $prop} = im($this->{'organic_' . $prop}, ' / ');
         }
+
+        //i($cmp);
 
         // Save
         $this->save();
