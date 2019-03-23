@@ -18,6 +18,17 @@ class Admin_VertifireController extends Indi_Controller_Admin {
      */
     public function compareAction() {
 
+        /*Array(
+            [organic] => 0
+            [video] => 1
+            [related] => 2
+            [ad_top] => 0
+            [snack_pack] => 1
+            [ad_bottom] => 3
+            [pla_top] => 0
+            [featured_snippet] => 0
+        )*/
+
         // Detect diff stats for selected
         foreach ($this->selected as $r) $r->compare();
 

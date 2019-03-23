@@ -190,8 +190,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div>~', $item, $m2);
 
                             // Assign and append
-                            $results['videos'] []= [
-                                'rank' => count($results['videos']) + 1,
+                            $results['video'] []= [
+                                'rank' => count($results['video']) + 1,
                                 'position' => $total + 1,
                                 'url' => $m1[1],
                                 'display_url' => $m0[3],
@@ -201,7 +201,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         }
 
                         //
-                        if ($results['videos']) $total ++;
+                        if ($results['video']) $total ++;
                     }
                 }
             }
@@ -292,7 +292,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 } if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
                     // Get result type
-                    $type = $results['organic'] ? 'videos' : 'top_stories';
+                    $type = $results['organic'] ? 'video' : 'top_stories';
 
                     // Get array of items' html
                     $itemA = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $items);
@@ -309,8 +309,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'description' => Indi::rexm('~<cite>([^<]+)</cite>~', $item, 1)
                         ];
 
-                        // Else if result type is 'videos'
-                        else if ($type = 'videos') {
+                        // Else if result type is 'video'
+                        else if ($type = 'video') {
 
                             // Pick props
                             preg_match('~^<div class="[^"]+"><a href="([^"]+)"~', $item, $m);
@@ -331,7 +331,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     }
 
                     //
-                    if (count($results['videos'])) $total ++;
+                    if (count($results['video'])) $total ++;
 
                 // Else it's organic results
                 } else if ($itemA = between('~<div class="g"><!--m-->~', '<!--n--></div>', $groupI)) {
@@ -456,9 +456,15 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             ];
         }
 
-        // Reset organic compare results
-        foreach (['display_url', 'title', 'description'] as $prop) $this->{'organic_' . $prop} = '0 / 0 / 0';
-        $this->organic0 = $this->organic1 = 0;
+        // Reset compare results
+        foreach (['organic', 'video'] as $type) {
+
+            //
+            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
+
+            //
+            $this->{$type . '0'} = $this->{$type . '1'} = 0;
+        }
 
         // Save
         $this->assign([
@@ -476,53 +482,53 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         $parser['old'] = json_decode($this->results, true);
         $parser['new'] = json_decode($this->new_results, true);
 
-        // If both contain organic results
-        if ($parser['old']['organic'] && $parser['new']['organic']) {
+        // Foreach result type
+        foreach (['organic', 'video'] as $type) {
 
             // Foreach parser (e.g. 'old' and 'new')
             foreach ($parser as $version => &$res) {
 
-                // Get qty of organic-results
-                $qty = count($res['organic']);
+                // Get qty of results
+                $qty = count($res[$type]);
 
-                // Foreach organic-result
+                // Foreach result
                 for ($i = 0; $i < $qty; $i++) {
 
                     // Get url
-                    $url = $res['organic'][$i]['url'];
+                    $url = $res[$type][$i]['url'];
 
                     // Collect urls
-                    $organic['url'][$version] []= str_replace('&amp;', '&', $url);
+                    $urlA[$type]['url'][$version] []= str_replace('&amp;', '&', $url);
 
                     // Unset rank and position
-                    unset ($res['organic'][$i]['rank'], $res['organic'][$i]['position']);
+                    unset ($res[$type][$i]['rank'], $res[$type][$i]['position']);
 
-                    // Append same item to the ending of $old['organic'] array, but using $url as a key
-                    $res['organic'][urldecode($url)] = $res['organic'][$i];
+                    // Append same item to the ending of $items array, but using $url as a key
+                    $res[$type][$url] = $res[$type][$i];
 
                     // Unset current item and 'url' key within appended item
-                    unset($res['organic'][$i], $res['organic'][$url]['url']);
+                    unset($res[$type][$i], $res[$type][$url]['url']);
                 }
             }
 
-            // Set qty of organic results, that are in old parser results, but are not in new
-            $this->organic0 = count(array_diff($organic['url']['old'], $organic['url']['new']));
+            // Set qty of results, that are in old parser results, but are not in new
+            $this->{$type.'0'} = count(array_diff($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []));
 
-            // Set qty of organic results, that are in new parser results, but are not in old
-            $this->organic1 = count(array_diff($organic['url']['new'], $organic['url']['old']));
+            // Set qty of results, that are in new parser results, but are not in old
+            $this->{$type.'1'} = count(array_diff($urlA[$type]['url']['new'] ?: [], $urlA[$type]['url']['old'] ?: []));
 
             // Foreach prop that we should compare - reset to zero-values
-            foreach (['display_url', 'title', 'description'] as $prop) $this->{'organic_' . $prop} = [0, 0, 0];
+            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = [0, 0, 0];
 
-            // For results, having same urls in both new and old parser's organic results
-            foreach (array_intersect($organic['url']['old'], $organic['url']['new']) as $url) {
+            // For results, having same urls in both new and old parser's results
+            foreach (array_intersect($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []) as $url) {
 
                 // Foreach prop that we should compare
                 foreach (['display_url', 'title', 'description'] as $prop) {
 
                     // Shortcuts
-                    $old = $parser['old']['organic'][$url][$prop];
-                    $new = $parser['new']['organic'][$url][$prop];
+                    $old = $parser['old'][$type][$url][$prop];
+                    $new = $parser['new'][$type][$url][$prop];
 
                     // Detect diff type
                     $idx = false; if ($old && !$new) $idx = 0; else if (!$old && $new) $idx = 2; else if ($old != $new) $idx = 1;
@@ -540,10 +546,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             if ($sim < 50) {
 
                                 // Increment counter for that certain diff type
-                                $this->_modified['organic_' . $prop][$idx] ++;
+                                $this->_modified[$type . '_' . $prop][$idx] ++;
 
                                 // Collect
-                                $cmp['organic'][$url][$prop] = [
+                                $cmp[$type][$url][$prop] = [
                                     'old' => $old,
                                     'new' => $new,
                                     'sim' => $sim
@@ -551,14 +557,14 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             }
 
                         // Increment counter for that certain diff type
-                        } else $this->_modified['organic_' . $prop][$idx] ++;
+                        } else $this->_modified[$type . '_' . $prop][$idx] ++;
                     }
                 }
             }
 
             // Foreach prop that we should compare - join with ' / '
             foreach (['display_url', 'title', 'description'] as $prop)
-                $this->{'organic_' . $prop} = im($this->{'organic_' . $prop}, ' / ');
+                $this->{$type . '_' . $prop} = im($this->{$type . '_' . $prop}, ' / ');
         }
 
         //i($cmp);

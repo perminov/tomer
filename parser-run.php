@@ -201,8 +201,8 @@ if ($mobile) {
                     preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div>~', $item, $m2);
 
                     // Assign and append
-                    $results['videos'] []= [
-                        'rank' => count($results['videos']) + 1,
+                    $results['video'] []= [
+                        'rank' => count($results['video']) + 1,
                         'position' => $total + 1,
                         'url' => $m1[1],
                         'display_url' => $m0[3],
@@ -212,7 +212,7 @@ if ($mobile) {
                 }
 
                 //
-                if ($results['videos']) $total ++;
+                if ($results['video']) $total ++;
             }
         }
     }
@@ -303,7 +303,7 @@ if ($mobile) {
         } if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
             // Get result type
-            $type = $results['organic'] ? 'videos' : 'top_stories';
+            $type = $results['organic'] ? 'video' : 'top_stories';
 
             // Get array of items' html
             $itemA = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $items);
@@ -320,8 +320,8 @@ if ($mobile) {
                     'description' => rexm('~<cite>([^<]+)</cite>~', $item, 1)
                 ];
 
-                // Else if result type is 'videos'
-                else if ($type = 'videos') {
+                // Else if result type is 'video'
+                else if ($type = 'video') {
 
                     // Pick props
                     preg_match('~^<div class="[^"]+"><a href="([^"]+)"~', $item, $m);
@@ -342,7 +342,7 @@ if ($mobile) {
             }
 
             // If at least single video found - increment $total counter
-            if (count($results['videos'])) $total ++;
+            if (count($results['video'])) $total ++;
 
         // Else it's organic results
         } else if ($itemA = between('~<div class="g"><!--m-->~', '<!--n--></div>', $groupI)) {
