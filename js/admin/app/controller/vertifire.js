@@ -34,6 +34,15 @@ Ext.define('Indi.controller.vertifire', {
             }
         },
         form: {
+            formItem$Html_link: {
+                lbarItems: [{
+                    iconCls: 'i-btn-icon-goto',
+                    tooltip: {html: 'Open in a new tab', constrainParent: false},
+                    handler: function(c) {
+                        window.open(c.target.val());
+                    }
+                }]
+            },
             formItem$Results: {
                 height: 150
             },
