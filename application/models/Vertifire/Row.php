@@ -483,7 +483,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         $parser['new'] = json_decode($this->new_results, true);
 
         // Foreach result type
-        foreach (['organic', 'video'] as $type) {
+        foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
 
             // Foreach parser (e.g. 'old' and 'new')
             foreach ($parser as $version => &$res) {
