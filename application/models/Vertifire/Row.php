@@ -491,6 +491,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 // Get qty of results
                 $qty = count($res[$type]);
 
+                // Set qty
+                $this->{$type . 'Qty_' . $version} = $qty;
+
                 // Foreach result
                 for ($i = 0; $i < $qty; $i++) {
 

@@ -42,14 +42,30 @@ class Admin_VertifireController extends Indi_Controller_Admin {
      * @param array $data
      */
     public function adjustGridData(&$data) {
+
+        // Foreach data item
         foreach ($data as &$item) {
+
+            // Foreach result type
             foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
+
+                // Check whether such result type detected within data item
+                $zero = !$item[$type . 'Qty_old'] && !$item[$type . 'Qty_new'];
+
+                // Foreach prop
                 foreach (['display_url','title','description'] as $prop) {
-                    $_ = &$item[$type . '_' . $prop]; $_ = explode(' / ', $_);
-                    $_[0] = '<span style="color: ' . ($_[0] ? 'red'  : 'lightgray') . ';">' . $_[0].'</span>';
-                    $_[2] = '<span style="color: ' . ($_[2] ? 'lime' : 'lightgray') . ';">' . $_[2].'</span>';
-                    $_[1] = '<span style="color: ' . ($_[1] ? 'blue' : 'lightgray') . ';">' . $_[1].'</span>';
-                    $_ = im($_, '<span style="color: lightgray;"> / </span>');
+
+                    // Shortcut
+                    $_ = &$item[$type . '_' . $prop];
+
+                    // If zero - hide values, else colorize
+                    if ($zero) $_ = ''; else {
+                        $_ = explode(' / ', $_);
+                        $_[0] = '<span style="color: ' . ($_[0] ? 'red'  : 'lightgray') . ';">' . $_[0].'</span>';
+                        $_[2] = '<span style="color: ' . ($_[2] ? 'lime' : 'lightgray') . ';">' . $_[2].'</span>';
+                        $_[1] = '<span style="color: ' . ($_[1] ? 'blue' : 'lightgray') . ';">' . $_[1].'</span>';
+                        $_ = im($_, '<span style="color: lightgray;"> / </span>');
+                    }
                 }
             }
         }
