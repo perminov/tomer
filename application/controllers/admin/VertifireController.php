@@ -90,12 +90,21 @@ class Admin_VertifireController extends Indi_Controller_Admin {
     public function viewAction() {
 
         // If $_GET['type'] is 'html' - show html source
-        if (Indi::get()->type == 'html') jtextarea(true, file_get_contents($this->row->html_link));
+        if (!Indi::get()->type) die(file_get_contents($this->row->html_link));
 
         // Get diff
         $diff = $this->row->compare(Indi::get()->type, Indi::get()->mode, Indi::get()->prop);
 
         // Flush diff
         jtextarea(true, print_r($diff, true));
+    }
+    
+    /**
+     * Show html source within textarea
+     */
+    public function sourceAction () {
+    
+        // Flush source
+        jtextarea(true, file_get_contents($this->row->html_link));
     }
 }
