@@ -18,11 +18,11 @@ class Vertifire_Row extends Indi_Db_Table_Row {
      */
     public function parse() {
 
-        // If `html_link` is empty - return false
-        if (!$this->html_link) return false;
+        // If no source file - return false
+        if (!$abs = $this->abs('source')) return false;
 
         // Get html
-        $html = file_get_contents($this->html_link);
+        $html = file_get_contents($abs);
 
         // No html got - return false
         if (!$html) return false;
@@ -471,6 +471,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             'new_results' => json_encode($results),
             'sp' => 'y'
         ])->save();
+        
+        // Return
+        return true;
     }
 
     /**

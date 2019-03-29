@@ -6,11 +6,20 @@ class Admin_VertifireController extends Indi_Controller_Admin {
      */
     public function parseAction() {
 
-        // Parse selected
-        foreach ($this->selected as $r) $r->parse();
+        // Html source file download counters
+        $stat = ['already' => 0, 'error' => 0, 'new' => 0];
+        
+        // Foreach selected row - try to download
+        foreach ($this->selected as $r)
+            if ($r->src('source')) $stat['already'] ++;
+            else if (!$raw = file_get_contents($r->html_link)) $stat['error'] ++;
+            else $r->file('source', 'html', $raw);
 
-        // Flush success
-        jflush(true, 'Parsed. Ready to be compared.');
+        // Parse selected
+        $parsedQty = 0; foreach ($this->selected as $r) if ($r->parse()) $parsedQty ++;
+
+        // Flush download stat
+        jflush(true, 'HTML source-files download stats: ' . json_encode($stat) . '. Parsed: ' . $parsedQty);        
     }
 
     /**
@@ -104,7 +113,10 @@ class Admin_VertifireController extends Indi_Controller_Admin {
      */
     public function sourceAction () {
     
+        // If no source-file - flush error
+        if (!$abs = $this->row->abs('source')) jflush(false, 'No file with html source');
+    
         // Flush source
-        jtextarea(true, file_get_contents($this->row->html_link));
+        jtextarea(true, file_get_contents($abs));
     }
 }
