@@ -15,17 +15,8 @@ class Admin_VertifireController extends Indi_Controller_Admin {
             else if (!$raw = file_get_contents($r->html_link)) $stat['error'] ++;
             else $r->file('source', 'html', $raw);
 
-        // Parse selected
-        $parsedQty = 0; foreach ($this->selected as $r) if ($r->parse()) $parsedQty ++;
-
-        // Flush download stat
-        jflush(true, 'HTML source-files download stats: ' . json_encode($stat) . '. Parsed: ' . $parsedQty);        
-    }
-
-    /**
-     * Bulk diff
-     */
-    public function compareAction() {
+        // Parsed rows counter
+        $parsedQty = 0;
 
         /*Array(
             [organic] => 0
@@ -38,11 +29,21 @@ class Admin_VertifireController extends Indi_Controller_Admin {
             [featured_snippet] => 0
         )*/
 
-        // Detect diff stats for selected
-        foreach ($this->selected as $r) $r->compare();
+        // Foreach selected row
+        foreach ($this->selected as $r) {
 
-        // Flush success
-        jflush(true, 'Done');
+            // If can't be parsed - skip
+            if (!$r->parse()) continue;
+
+            // Compare results and calc diff
+            $r->compare();
+
+            // Increase counter
+            $parsedQty ++;
+        }
+
+        // Flush download stat
+        jflush(true, 'HTML source-files download stats: ' . json_encode($stat) . '. Parsed: ' . $parsedQty);        
     }
 
     /**

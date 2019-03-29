@@ -28,6 +28,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             $this->{$type . '0'} = $this->{$type . '1'} = $this->{$type . 'Qty_new'} = 0;
         }
 
+        // Reset parser result
+        $this->new_results = '[]';
+
         // Save
         $this->save();
 
