@@ -516,10 +516,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 for ($i = 0; $i < $qty; $i++) {
 
                     // Get url
-                    $url = $res[$type][$i]['url'];
+                    $url = str_replace('&amp;', '&', $res[$type][$i]['url']);
 
                     // Collect urls
-                    $urlA[$type]['url'][$version] []= str_replace('&amp;', '&', $url);
+                    $urlA[$type]['url'][$version] []= $url;
 
                     // Unset rank and position
                     unset ($res[$type][$i]['rank'], $res[$type][$i]['position']);
