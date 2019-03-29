@@ -476,14 +476,23 @@ class Vertifire_Row extends Indi_Db_Table_Row {
     /**
      * Compare old parser results with new parser results
      */
-    public function compare() {
+    public function compare($type = null, $mode = null, $prop = null) {
 
         // Decode results
         $parser['old'] = json_decode($this->results, true);
         $parser['new'] = json_decode($this->new_results, true);
 
+        // If $type arg is given - walk though results of given type only
+        $typeA = $type ? [$type] : ['organic', 'video', 'ad_top', 'ad_bottom'];
+
+        // If $prop arg is given - look at given prop's results only
+        $propA = $prop ? [$prop] : ['display_url', 'title', 'description'];
+
+        // If $mode arg is given, and it is 'old' or 'new' - return old/new parser results of given type
+        if (in($mode, ['old', 'new'])) return $parser[$mode][$type];
+
         // Foreach result type
-        foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
+        foreach ($typeA as $type) {
 
             // Foreach parser (e.g. 'old' and 'new')
             foreach ($parser as $version => &$res) {
@@ -515,19 +524,22 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             }
 
             // Set qty of results, that are in old parser results, but are not in new
-            $this->{$type.'0'} = count(array_diff($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []));
+            $this->{$type.'0'} = count($diff[$type.'0'] = array_diff($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []));
 
             // Set qty of results, that are in new parser results, but are not in old
-            $this->{$type.'1'} = count(array_diff($urlA[$type]['url']['new'] ?: [], $urlA[$type]['url']['old'] ?: []));
+            $this->{$type.'1'} = count($diff[$type.'1'] = array_diff($urlA[$type]['url']['new'] ?: [], $urlA[$type]['url']['old'] ?: []));
+
+            // If $mode arg is given and is 1 or 0, and $prop arg not given - return urls
+            if (in($mode, [0, 1]) && !$prop) return $diff[$type.$mode];
 
             // Foreach prop that we should compare - reset to zero-values
-            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = [0, 0, 0];
+            foreach ($propA as $prop) $this->{$type . '_' . $prop} = [0, 0, 0];
 
             // For results, having same urls in both new and old parser's results
             foreach (array_intersect($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []) as $url) {
 
                 // Foreach prop that we should compare
-                foreach (['display_url', 'title', 'description'] as $prop) {
+                foreach ($propA as $prop) {
 
                     // Shortcuts
                     $old = $parser['old'][$type][$url][$prop];
@@ -552,25 +564,35 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                                 $this->_modified[$type . '_' . $prop][$idx] ++;
 
                                 // Collect
-                                $cmp[$type][$url][$prop] = [
+                                $cmp[$type][$prop][$idx][$url] = [
                                     'old' => $old,
                                     'new' => $new,
                                     'sim' => $sim
                                 ];
                             }
 
-                        // Increment counter for that certain diff type
-                        } else $this->_modified[$type . '_' . $prop][$idx] ++;
+                        // Else
+                        } else {
+
+                            // Increment counter for that certain diff type
+                            $this->_modified[$type . '_' . $prop][$idx] ++;
+
+                            // Collect
+                            $cmp[$type][$prop][$idx][$url] = [
+                                'old' => $old,
+                                'new' => $new
+                            ];
+                        }
                     }
                 }
             }
 
-            // Foreach prop that we should compare - join with ' / '
-            foreach (['display_url', 'title', 'description'] as $prop)
-                $this->{$type . '_' . $prop} = im($this->{$type . '_' . $prop}, ' / ');
-        }
+            // If $prop arg wa given - return diff for that certain prop
+            if (func_num_args() > 2) return $cmp[$type][$prop][$mode];
 
-        //i($cmp);
+            // Foreach prop that we should compare - join with ' / '
+            foreach ($propA as $prop) $this->{$type . '_' . $prop} = im($this->{$type . '_' . $prop}, ' / ');
+        }
 
         // Save
         $this->save();

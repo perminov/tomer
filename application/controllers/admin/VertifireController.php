@@ -43,6 +43,12 @@ class Admin_VertifireController extends Indi_Controller_Admin {
      */
     public function adjustGridData(&$data) {
 
+        // Colors
+        $color = ['red', 'blue', 'lime'];
+
+        // Clickable value wrapper template
+        $tpl = '<a load="/vertifire/view/id/%s/?type=%s&mode=%s&prop=%s" style="color: %s;">';
+
         // Foreach data item
         foreach ($data as &$item) {
 
@@ -60,14 +66,33 @@ class Admin_VertifireController extends Indi_Controller_Admin {
 
                     // If zero - hide values, else colorize
                     if ($zero) $_ = ''; else {
+
+                        // Explode
                         $_ = explode(' / ', $_);
-                        $_[0] = '<span style="color: ' . ($_[0] ? 'red'  : 'lightgray') . ';">' . $_[0].'</span>';
-                        $_[2] = '<span style="color: ' . ($_[2] ? 'lime' : 'lightgray') . ';">' . $_[2].'</span>';
-                        $_[1] = '<span style="color: ' . ($_[1] ? 'blue' : 'lightgray') . ';">' . $_[1].'</span>';
+
+                        // Wrap
+                        foreach ($_ as $i => $v) {
+                            $_[$i] = wrap($_[$i], sprintf($tpl, $item['id'], $type, $i, $prop, $color[$i]));
+                            $_[$i] = wrap($_[$i], '<span style="color: lightgray;">', !$_[$i]);
+                        }
+
+                        // Implode back
                         $_ = im($_, '<span style="color: lightgray;"> / </span>');
                     }
                 }
             }
         }
+    }
+
+    /**
+     *
+     */
+    public function viewAction() {
+
+        // Get diff
+        $diff = $this->row->compare(Indi::get()->type, Indi::get()->mode, Indi::get()->prop);
+
+        // Flush diff
+        jtextarea(true, print_r($diff, true));
     }
 }
