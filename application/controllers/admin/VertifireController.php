@@ -99,7 +99,14 @@ class Admin_VertifireController extends Indi_Controller_Admin {
     public function viewAction() {
 
         // If $_GET['type'] is 'html' - show html source
-        if (!Indi::get()->type) die(file_get_contents($this->row->html_link));
+        if (!Indi::get()->type) {
+
+            // If no source-file - flush error
+            if (!$abs = $this->row->abs('source')) jflush(false, 'No file with html source');
+
+            // Flush source
+            die(file_get_contents($abs));
+        }
 
         // Get diff
         $diff = $this->row->compare(Indi::get()->type, Indi::get()->mode, Indi::get()->prop);
