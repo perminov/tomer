@@ -170,19 +170,19 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         if (!preg_match('~^<div~', $organic)) continue;
 
                         preg_match('~<a[^>]+href="([^"]+)"[^>]*>~', $organic, $m1);
-                        preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div><div[^>]+><span[^>]+>([^<]+)</span></div></a>~', $organic, $m2);
+                        preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div><div[^>]+>~', $organic, $m2);
+                        preg_match('~<span class="[^"]+">([^<]+)</span></div></a>~', $organic, $m3);
 
                         //
                         $results['organic'] []= [
                             'rank' => count($results['organic']) + 1,
                             'position' => ++$total,
                             'url' => $m1[1],
-                            'display_url' => $m2[2],
+                            'display_url' => $m3[1],
                             'title' => $m2[1],
                             'description' => strip_tags(between('~</a></div><hr[^>]+>~', '<div style="margin-top:16px"></div>', $organic)[0])
                         ];
                     }
-
 
                 // Else if it's videos
                 } else if ($videos = between('~<div><g-card[^>]+id="tscffb"[^>]+><div class="mnr-c">~', '</div></g-card></div>', $node)[0]) {
@@ -218,6 +218,25 @@ class Vertifire_Row extends Indi_Db_Table_Row {
 
                         //
                         if ($results['video']) $total ++;
+                    }
+
+                // Else if it's a single-result node
+                } else if (preg_match('~^<div data-hveid="[^"]+">~', $node) && $inner = innerHtml('~<div data-hveid="CAcQAA"><div class="mnr-c[^"]+"><div><div>~', $node)) {
+
+                    //
+                    if (preg_match('~<div><a.*href="([^"]+)"[^>]*>.*?<div aria-level="3" role="heading"[^>]+>(.*?)</div>'
+                        . '<div[^>]+>.*?<span class="[^"]+">(.*?)</span></div></a></div><hr class="[^"]+">'
+                        . '<div[^>]+><div[^>]+>(.*?)</div></div>~', $inner[0], $m)) {
+
+                        //
+                        $results['organic'] []= [
+                            'rank' => count($results['organic']) + 1,
+                            'position' => ++$total,
+                            'url' => $m[1],
+                            'display_url' => $m[3],
+                            'title' => $m[2],
+                            'description' => $m[4]
+                        ];
                     }
                 }
             }
@@ -276,6 +295,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             $rso = between('~<div eid="[^"]+" id="rso">~', '</div><!--z-->',
                 between('~<div class="med" id="res" role="main">~', '</div><div id="bottomads"', $html)[0])[0];
 
+            // Strip that node, as it brokes exploding idea
+            $rso = str_replace('<span id="fld"></span>', '', $rso);
+
             // Get opening div
             $div = Indi::rexm('~^<div class="[^"]+">~', $rso, 0);
 
@@ -305,7 +327,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     }
 
                 // Else if group contains results, represented as a carousel
-                } if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
+                } else if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
                     // Get result type
                     $type = $results['organic'] ? 'video' : 'top_stories';
@@ -350,15 +372,18 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     if (count($results['video'])) $total ++;
 
                 // Else it's organic results
-                } else if ($itemA = between('~<div class="g"><!--m-->~', '<!--n--></div>', $groupI)) {
+                } else if ($itemA = between('~<div class="g"[^>]*>.*?<!--m-->~', '~<!--n--><(table|/div>)~', $groupI)) {
 
                     // Foreach
                     foreach ($itemA as $idx => $item) {
 
+                        // Regex parts
+                        $both = '~<div class="rc"><div class="r">.*?<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>';
+                        $desc = '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~';
+                        $none = '</a></div><div class="s"><div><span class="st"><div>.*?</div><div class="f">~';
+
                         // Capture data
-                        preg_match('~<div class="rc"><div class="r">'
-                            . '<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>'
-                            . '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~', $item, $m);
+                        preg_match($both . $desc, $item, $m) ?: preg_match($both . $none, $item, $m);
 
                         // Assign and append
                         $results['organic'] []= [
@@ -367,7 +392,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'url' => $m[1],
                             'display_url' => $m[4],
                             'title' => $m[3],
-                            'description' => strip_tags(array_shift(explode('</span>', array_pop(explode('<div class="s"><div><span class="st">', $item)))))
+                            'description' => strip_tags(between('~<span class="st">~', '~</span></?div~', $item)[0])
                         ];
                     }
 
