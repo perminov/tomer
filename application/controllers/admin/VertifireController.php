@@ -85,9 +85,12 @@ class Admin_VertifireController extends Indi_Controller_Admin {
     }
 
     /**
-     *
+     * View html source, or view diff
      */
     public function viewAction() {
+
+        // If $_GET['type'] is 'html' - show html source
+        if (Indi::get()->type == 'html') jtextarea(true, file_get_contents($this->row->html_link));
 
         // Get diff
         $diff = $this->row->compare(Indi::get()->type, Indi::get()->mode, Indi::get()->prop);

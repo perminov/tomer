@@ -8,6 +8,9 @@ Ext.define('Indi.controller.vertifire', {
             gridColumn$Title: {
                 minWidth: 300
             },
+            gridColumn$Title_Renderer: function(v, s, r) {
+                return '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=html">' + v + '</a>';
+            },
             gridColumn$OrganicQty_old_Renderer: function(v, s, r) {
                 return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=organic&mode=old">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
             },
