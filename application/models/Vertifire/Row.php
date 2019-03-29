@@ -18,6 +18,19 @@ class Vertifire_Row extends Indi_Db_Table_Row {
      */
     public function parse() {
 
+        // Foreach result type
+        foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
+
+            // Reset by-props diff
+            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
+
+            // Reset general diff
+            $this->{$type . '0'} = $this->{$type . '1'} = $this->{$type . 'Qty_new'} = 0;
+        }
+
+        // Save
+        $this->save();
+
         // If no source file - return false
         if (!$abs = $this->abs('source')) return false;
 
@@ -454,16 +467,6 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 'display_url' => $m2[1],
                 'description' => between('~<div class="kno-rdesc[^"]+"[^>]*><div><h3[^>]+>[^<]+</h3><span>~', '</span>', $rhs)[0]
             ];
-        }
-
-        // Reset compare results
-        foreach (['organic', 'video'] as $type) {
-
-            //
-            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
-
-            //
-            $this->{$type . '0'} = $this->{$type . '1'} = 0;
         }
 
         // Save
