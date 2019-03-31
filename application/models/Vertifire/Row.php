@@ -277,8 +277,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 // Pick url, display_url and title
                 preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
                     . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
-                    . '<br><div class="ads-visurl"><span class="[^"]+">Ad</span>'
-                    . '<cite class="[^"]+">([^<]+)</cite>‎</div></a>~', $_, $m1);
+                    . '<br><div class="ads-visurl"><span class="[^"]+">.*?</span>'
+                    . '<cite class="[^"]+".*?>([^<]+)</cite>‎~', $_, $m1);
 
                 // Add to results
                 $results['ad_top'] []= [
@@ -475,8 +475,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             // Pick url, display_url and title
             preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
                 . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
-                . '<br><div class="ads-visurl"><span class="[^"]+">Ad</span>'
-                . '<cite class="[^"]+">([^<]+)</cite>‎</div></a>~', $_, $m1);
+                . '<br><div class="ads-visurl"><span class="[^"]+">.*?</span>'
+                . '<cite class="[^"]+".*?>([^<]+)</cite>‎~', $_, $m1);
 
             // Add to results
             $results['ad_bottom'] []= [
