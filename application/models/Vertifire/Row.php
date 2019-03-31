@@ -333,11 +333,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 } else if (preg_match('~data-attrid="action:watch_film"~', $groupI)) {
 
                 // Else if it's center-col featured snipped block
-                } else if (preg_match('~^<div class="g mnr-c g-blk".+?<div class="kp-blk.+?<div class="iq-content-first.+?<div~', $groupI)) {
-
-                // Else if it's center-col featured snipped block
-                } else if (preg_match('~^<div class="g mnr-c g-blk".+?<div class="kp-blk.+?<div class="iq-content-first.+?<div~', $groupI)) {
-
+                } else if (preg_match('~^<div class="g mnr-c g-blk".+?<div class="kp-blk.+?<div class="[^"]+kno-ftr"><div class="[^"]+kno-fb">~', $groupI)) {
 
                 // Else if group contains results, represented as a carousel
                 } else if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
