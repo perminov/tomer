@@ -180,7 +180,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'url' => $m1[1],
                             'display_url' => $m3[1],
                             'title' => $m2[1],
-                            'description' => strip_tags(between('~</a></div><hr[^>]+>~', '<div style="margin-top:16px"></div>', $organic)[0])
+                            'description' => strip_tags(between('~</a></div><hr[^>]+>~', '~<div style="margin-top:[0-9]+px"></div>~', $organic)[0])
                         ];
                     }
 
@@ -221,7 +221,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     }
 
                 // Else if it's a single-result node
-                } else if (preg_match('~^<div data-hveid="[^"]+">~', $node) && $inner = innerHtml('~<div data-hveid="CAcQAA"><div class="mnr-c[^"]+"><div><div>~', $node)) {
+                } else if (preg_match('~^<div data-hveid="[^"]+">~', $node) && $inner = innerHtml('~<div data-hveid="[^"]+"><div class="mnr-c[^"]+"><div><div>~', $node)) {
 
                     //
                     if (preg_match('~<div><a.*href="([^"]+)"[^>]*>.*?<div aria-level="3" role="heading"[^>]+>(.*?)</div>'
@@ -378,8 +378,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     foreach ($itemA as $idx => $item) {
 
                         // Regex parts
-                        $both = '~<div class="rc"><div class="r">.*?<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">([^<]+)</h3>';
-                        $desc = '<br><div class="[^"]+"><cite class="[^"]+">([^<]+)</cite></div></a>~';
+                        $both = '~<div class="rc"><div class="r">.*?<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">(.*?)</h3>';
+                        $desc = '<br><div class="[^"]+"><cite class="[^"]+">(.*?)</cite></div></a>~';
                         $none = '</a></div><div class="s"><div><span class="st"><div>.*?</div><div class="f">~';
 
                         // Capture data
@@ -390,8 +390,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'rank' => count($results['organic']) + 1,
                             'position' => ++$total,
                             'url' => $m[1],
-                            'display_url' => $m[4],
-                            'title' => $m[3],
+                            'display_url' => strip_tags($m[4]),
+                            'title' => strip_tags($m[3]),
                             'description' => strip_tags(between('~<span class="st">~', '~</span></?div~', $item)[0])
                         ];
                     }
@@ -435,6 +435,24 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'url' => $m2[1],
                             'title' => $m3[1],
                             'description' => strip_tags(preg_replace('~__wrapped">~', '$0 ', $desc))
+                        ];
+                    }
+
+                // Else if it's organic-video single-result block
+                } else if (preg_match('~<div class="g mnr-c g-blk"[^>]*><div class="kp-blk[^"]*">~', $groupI)) {
+
+                    if ($item = between('~<div[^>]*><!--m-->~', '~<!--n--></div>~', $groupI)[0]) {
+
+                        preg_match('~<h3.*?<a href="(.*?)".*?><h3.*?>(.*?)</h3></a></h3><div.*?><cite.*?>(.*?)</cite>~', $item, $m);
+
+                        // Assign and append
+                        $results['organic'] []= [
+                            'rank' => count($results['organic']) + 1,
+                            'position' => ++$total,
+                            'url' => $m[1],
+                            'display_url' => '',
+                            'title' => $m[2],
+                            'description' => strip_tags($m[3])
                         ];
                     }
                 }
