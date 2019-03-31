@@ -346,6 +346,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         if (preg_match('~^<div.*?<g-section-with-header.*?<div.*?<h3 aria-level="2" role="heading"~',$groupI))
                             $type = 'videos';
 
+                    // Else if it's Research-block - skip
+                    else if (preg_match('~^<g-card.*?<div.*<g-tray-header~', $groupI)) continue;
+
                     // Get array of items' html
                     $itemA = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $items);
 
