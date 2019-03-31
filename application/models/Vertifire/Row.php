@@ -278,7 +278,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
                     . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
                     . '<br><div class="ads-visurl"><span class="[^"]+">.*?</span>'
-                    . '<cite class="[^"]+".*?>([^<]+)</cite>‎~', $_, $m1);
+                    . '<cite class="[^"]+".*?>([^<]+)</cite>~', $_, $m1);
 
                 // Add to results
                 $results['ad_top'] []= [
@@ -476,7 +476,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             preg_match('~<div class="ad_cclk"><a style="display:none"[^>]+></a>'
                 . '<a class="[^"]+" href="([^"]+)"[^>]+><h3 class="[^"]+">([^<]+)</h3>'
                 . '<br><div class="ads-visurl"><span class="[^"]+">.*?</span>'
-                . '<cite class="[^"]+".*?>([^<]+)</cite>‎~', $_, $m1);
+                . '<cite class="[^"]+".*?>([^<]+)</cite>~', $_, $m1);
 
             // Add to results
             $results['ad_bottom'] []= [
