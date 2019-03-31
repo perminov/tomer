@@ -326,6 +326,19 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         ];
                     }
 
+                // Else if it's images block - do nothing
+                } else if (preg_match('~^<div class="g" id="imagebox_bigimages"~', $groupI)) {
+
+                // Else if it's watch_film block - do nothing
+                } else if (preg_match('~data-attrid="action:watch_film"~', $groupI)) {
+
+                // Else if it's center-col featured snipped block
+                } else if (preg_match('~^<div class="g mnr-c g-blk".+?<div class="kp-blk.+?<div class="iq-content-first.+?<div~', $groupI)) {
+
+                // Else if it's center-col featured snipped block
+                } else if (preg_match('~^<div class="g mnr-c g-blk".+?<div class="kp-blk.+?<div class="iq-content-first.+?<div~', $groupI)) {
+
+
                 // Else if group contains results, represented as a carousel
                 } else if ($items = between('~<g-scrolling-carousel[^>]+><div[^>]+><div[^>]+><div[^>]+>~', '</div></div></div><g-left-button', $groupI)[0]) {
 
@@ -384,7 +397,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     foreach ($itemA as $idx => $item) {
 
                         // Regex parts
-                        $both = '~<div class="rc"><div class="r">.*?<a href="([^"]+)" ping="([^"]+)"><h3 class="[^"]+">(.*?)</h3>';
+                        $both = '~<div class="rc"><div class="r">.*?<a href="([^"]+)".*?<h3 class="[^"]+">(.*?)</h3>.*?';
                         $desc = '<br><div class="[^"]+"><cite class="[^"]+">(.*?)</cite></div></a>~';
                         $none = '</a></div><div class="s"><div><span class="st"><div>.*?</div><div class="f">~';
 
@@ -396,8 +409,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'rank' => count($results['organic']) + 1,
                             'position' => ++$total,
                             'url' => $m[1],
-                            'display_url' => strip_tags($m[4]),
-                            'title' => strip_tags($m[3]),
+                            'display_url' => strip_tags($m[3]),
+                            'title' => strip_tags($m[2]),
                             'description' => strip_tags(between('~<span class="st">~', '~</span></?div~', $item)[0])
                         ];
                     }
