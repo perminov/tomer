@@ -332,6 +332,11 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     // Get result type
                     $type = $results['organic'] ? 'video' : 'top_stories';
 
+                    // Check another signal for detecting videos
+                    if ($type != 'videos')
+                        if (preg_match('~^<div.*?<g-section-with-header.*?<div.*?<h3 aria-level="2" role="heading"~',$groupI))
+                            $type = 'videos';
+
                     // Get array of items' html
                     $itemA = between('~<g-inner-card[^>]*>~', '</g-inner-card>', $items);
 
@@ -355,13 +360,14 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             preg_match('~aria-level="3" role="heading"[^>]*>([^<]+)</div></div>'
                                 . '</a><div class="[^"]+"><div class="[^"]+" style="[^"]+">([^<]*)</div>'
                                 . '</div><div class="[^"]+"><div class="[^"]+" style="[^"]+">'
-                                . '<span class="[^"]+" style="[^"]+">[^<]*</span>~', $item, $m2);
+                                . '<span class="[^"]+" style="[^"]+">(.*?)</span>~', $item, $m2);
 
                             // Assign and append
                             $results[$type] []= [
                                 'rank' => $idx + 1,
                                 'position' => $total + 1,
                                 'url' => $m[1],
+                                'display_url' => $m2[3],
                                 'title' => $m2[1],
                                 'description' => strip_tags($m2[2]),
                             ];
