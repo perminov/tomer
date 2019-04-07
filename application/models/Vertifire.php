@@ -14,11 +14,11 @@ class Vertifire extends Indi_Db_Table {
      * @var array
      */
     public static $props = [
-        'organic' => 'display_url,title,description',
-        'video' => 'display_url,title,description',
-        'ad_top' => 'display_url,title,description',
-        'ad_bottom' => 'display_url,title,description',
-        'related' => 'title',
-        'snack_pack' => 'cid,title,description'
+        'organic' =>    ['display_url,title,description', 'url'],
+        'video' =>      ['display_url,title,description', 'url'],
+        'ad_top' =>     ['display_url,title,description', 'url'],
+        'ad_bottom' =>  ['display_url,title,description', 'url'],
+        'related' =>    ['title',                       'title'],
+        'snack_pack' => ['url,title,description',         'cid']
     ];
 }

@@ -22,7 +22,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         foreach (Vertifire::$props as $type => $props) {
 
             // Reset by-props diff
-            foreach (ar($props) as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
+            foreach (ar($props[0]) as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
 
             // Reset general diff
             $this->{$type . '0'} = $this->{$type . '1'} = $this->{$type . 'Qty_new'} = 0;
@@ -501,7 +501,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         foreach ($typeA as $type) {
 
             // If $prop arg is given - look at given prop's results only
-            $propA = $prop ? [$prop] : ar(Vertifire::$props[$type]);
+            $propA = $prop ? [$prop] : ar(Vertifire::$props[$type][0]);
+
+            // Get key prop
+            $key = Vertifire::$props[$type][1];
 
             // Foreach parser (e.g. 'old' and 'new')
             foreach ($parser as $version => &$res) {
@@ -516,27 +519,27 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 for ($i = 0; $i < $qty; $i++) {
 
                     // Get url
-                    $url = str_replace('&amp;', '&', $res[$type][$i]['url']);
+                    $val = str_replace('&amp;', '&', $res[$type][$i][$key]);
 
-                    // Collect urls
-                    $urlA[$type]['url'][$version] []= $url;
+                    // Collect keys
+                    $valA[$type][$key][$version] []= $val;
 
                     // Unset rank and position
                     unset ($res[$type][$i]['rank'], $res[$type][$i]['position']);
 
-                    // Append same item to the ending of $items array, but using $url as a key
-                    $res[$type][$url] = $res[$type][$i];
+                    // Append same item to the ending of $items array, but using $val as a key
+                    $res[$type][$val] = $res[$type][$i];
 
-                    // Unset current item and 'url' key within appended item
-                    unset($res[$type][$i], $res[$type][$url]['url']);
+                    // Unset current item and $key key within appended item
+                    unset($res[$type][$i], $res[$type][$val][$key]);
                 }
             }
 
             // Set qty of results, that are in old parser results, but are not in new
-            $this->{$type.'0'} = count($diff[$type.'0'] = array_diff($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []));
+            $this->{$type.'0'} = count($diff[$type.'0'] = array_diff($valA[$type][$key]['old'] ?: [], $valA[$type][$key]['new'] ?: []));
 
             // Set qty of results, that are in new parser results, but are not in old
-            $this->{$type.'1'} = count($diff[$type.'1'] = array_diff($urlA[$type]['url']['new'] ?: [], $urlA[$type]['url']['old'] ?: []));
+            $this->{$type.'1'} = count($diff[$type.'1'] = array_diff($valA[$type][$key]['new'] ?: [], $valA[$type][$key]['old'] ?: []));
 
             // If $mode arg is given and is 1 or 0, and $prop arg not given - return urls
             if (in($mode, [0, 1]) && !$prop) return $diff[$type.$mode];
@@ -545,14 +548,14 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             foreach ($propA as $prop) $this->{$type . '_' . $prop} = [0, 0, 0];
 
             // For results, having same urls in both new and old parser's results
-            foreach (array_intersect($urlA[$type]['url']['old'] ?: [], $urlA[$type]['url']['new'] ?: []) as $url) {
+            foreach (array_intersect($valA[$type][$key]['old'] ?: [], $valA[$type][$key]['new'] ?: []) as $val) {
 
                 // Foreach prop that we should compare
                 foreach ($propA as $prop) {
 
                     // Shortcuts
-                    $old = $parser['old'][$type][$url][$prop];
-                    $new = $parser['new'][$type][$url][$prop];
+                    $old = $parser['old'][$type][$val][$prop];
+                    $new = $parser['new'][$type][$val][$prop];
 
                     // Detect diff type
                     $idx = false; if ($old && !$new) $idx = 0; else if (!$old && $new) $idx = 2; else if ($old != $new) $idx = 1;
@@ -573,7 +576,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                                 $this->_modified[$type . '_' . $prop][$idx] ++;
 
                                 // Collect
-                                $cmp[$type][$prop][$idx][$url] = [
+                                $cmp[$type][$prop][$idx][$val] = [
                                     'old' => $old,
                                     'new' => $new,
                                     'sim' => $sim
@@ -587,7 +590,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             $this->_modified[$type . '_' . $prop][$idx] ++;
 
                             // Collect
-                            $cmp[$type][$prop][$idx][$url] = [
+                            $cmp[$type][$prop][$idx][$val] = [
                                 'old' => $old,
                                 'new' => $new
                             ];
