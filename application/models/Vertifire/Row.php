@@ -519,7 +519,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 for ($i = 0; $i < $qty; $i++) {
 
                     // Get url
-                    $val = str_replace('&amp;', '&', $res[$type][$i][$key]);
+                    $val = htmlspecialchars_decode($res[$type][$i][$key]);
+                    $val = str_replace('&#39;', "'", $val);
 
                     // Collect keys
                     $valA[$type][$key][$version] []= $val;
