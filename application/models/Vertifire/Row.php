@@ -19,10 +19,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
     public function parse() {
 
         // Foreach result type
-        foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
+        foreach (Vertifire::$props as $type => $props) {
 
             // Reset by-props diff
-            foreach (['display_url', 'title', 'description'] as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
+            foreach (ar($props) as $prop) $this->{$type . '_' . $prop} = '0 / 0 / 0';
 
             // Reset general diff
             $this->{$type . '0'} = $this->{$type . '1'} = $this->{$type . 'Qty_new'} = 0;
@@ -553,16 +553,16 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         $parser['new'] = json_decode($this->new_results, true);
 
         // If $type arg is given - walk though results of given type only
-        $typeA = $type ? [$type] : ['organic', 'video', 'ad_top', 'ad_bottom'];
-
-        // If $prop arg is given - look at given prop's results only
-        $propA = $prop ? [$prop] : ['display_url', 'title', 'description'];
+        $typeA = $type ? [$type] : array_keys(Vertifire::$props);
 
         // If $mode arg is given, and it is 'old' or 'new' - return old/new parser results of given type
         if (in($mode, ['old', 'new'])) return $parser[$mode][$type];
 
         // Foreach result type
         foreach ($typeA as $type) {
+
+            // If $prop arg is given - look at given prop's results only
+            $propA = $prop ? [$prop] : ar(Vertifire::$props[$type]);
 
             // Foreach parser (e.g. 'old' and 'new')
             foreach ($parser as $version => &$res) {

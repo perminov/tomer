@@ -19,13 +19,8 @@ class Admin_VertifireController extends Indi_Controller_Admin {
         $parsedQty = 0;
 
         /*Array(
-            [organic] => 0
-            [video] => 1
             [related] => 2
-            [ad_top] => 0
             [snack_pack] => 1
-            [ad_bottom] => 3
-            [pla_top] => 0
             [featured_snippet] => 0
         )*/
 
@@ -63,13 +58,13 @@ class Admin_VertifireController extends Indi_Controller_Admin {
         foreach ($data as &$item) {
 
             // Foreach result type
-            foreach (['organic', 'video', 'ad_top', 'ad_bottom'] as $type) {
+            foreach (Vertifire::$props as $type => $props) {
 
                 // Check whether such result type detected within data item
                 $zero = !$item[$type . 'Qty_old'] && !$item[$type . 'Qty_new'];
 
                 // Foreach prop
-                foreach (['display_url','title','description'] as $prop) {
+                foreach (ar($props) as $prop) {
 
                     // Shortcut
                     $_ = &$item[$type . '_' . $prop];
