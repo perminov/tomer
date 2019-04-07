@@ -87,6 +87,19 @@ Ext.define('Indi.controller.vertifire', {
             },
             gridColumn$Snack_pack1_Renderer: function(v, s, r) {
                 return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=snack_pack&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+
+            gridColumn$Top_storiesQty_old_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=top_stories&mode=old">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Top_stories0_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=top_stories&mode=0" style="color: red;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Top_storiesQty_new_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=top_stories&mode=new">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Top_stories1_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=top_stories&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
             }
         },
         form: {

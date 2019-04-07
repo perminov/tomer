@@ -19,6 +19,7 @@ class Vertifire extends Indi_Db_Table {
         'ad_top' =>     ['display_url,title,description', 'url'],
         'ad_bottom' =>  ['display_url,title,description', 'url'],
         'related' =>    ['title',                       'title'],
-        'snack_pack' => ['url,title,description',         'cid']
+        'snack_pack' => ['url,title,description',         'cid'],
+        'top_stories' =>  ['display_url,title,description', 'url']
     ];
 }
