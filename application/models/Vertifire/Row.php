@@ -126,9 +126,8 @@ class Vertifire_Row extends Indi_Db_Table_Row {
 
                         // Pick props
                         preg_match('~data-cid="([^"]+)"~', $item, $m1);
-                        preg_match('~href="(https[^"]+)"~', $item, $m2);
-                        preg_match('~<div[^>]*aria-level="3" role="heading"><span>([^<]+)</span></div>'
-                            . '<div><span>([^<]*)</span></div><div><div[^>]*>([^<]*)</div></div>~', $item, $m3);
+                        preg_match('~href="(.*?)".*?class="[a-z]+__text~', $item, $m2);
+                        preg_match('~<div[^>]*aria-level="3" role="heading"><span>([^<]+)</span></div>(.*?)</div></a>~', $item, $m3);
 
                         // Assign and append
                         $results['snack_pack'] []= [
@@ -137,7 +136,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             'cid' => $m1[1],
                             'url' => $m2[1],
                             'title' => $m3[1],
-                            'description' => trim($m3[2] . ' ' . $m3[3])
+                            'description' => strip_tags($m3[2])
                         ];
                     }
 
@@ -505,7 +504,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
         $related = $mobile
             ? between('~<a class="[^"]+" href="/search\?[^"]+"[^>]*>~', '~</a>~',
                 between('~<div class="med" id="extrares">~', '</div></div></div><div id="sfooter"', $html)[0])
-            : between('~<p class="[^"]+"><a href="/search\?q=[^"]+">~', '</a></p>',
+            : between('~<p class="[^"]+"><a href="/search\?[^"]+">~', '</a></p>',
                 between('~<div id="brs"[^>]*><g-section-with-header[^>]*~', '</g-section-with-header>',
                     between('~<div class="med" id="extrares">~', '</div><div><div id="foot"', $html)[0])[0]);
 
