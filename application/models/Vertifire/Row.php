@@ -500,10 +500,20 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             ];
         }
 
+        // If it's mobile source - try different markup templates for 'related' results
+        if ($mobile) {
+            $since = '~<div class="med" id="extrares">';
+            $exact1 = '.*?<div class="mnr-c ';
+            $exact2 = '.*? id="eu_42"';
+            $until = '</div></div></div><div id="sfooter"';
+            $_ = between($since . $exact1 . '~', $until, $html)
+                ?: between($since . $exact2 . '~', $until, $html)
+                    ?: between($since . '~', $until, $html);
+        }
+
         // Try to find 'related' elements
         $related = $mobile
-            ? between('~<a class="[^"]+" href="/search\?[^"]+"[^>]*>~', '~</a>~',
-                between('~<div class="med" id="extrares">~', '</div></div></div><div id="sfooter"', $html)[0])
+            ? between('~<a class="[^"]+" href="/search\?[^"]+"[^>]*>~', '~</a>~', $_[0])
             : between('~<p class="[^"]+"><a href="/search\?[^"]+">~', '</a></p>',
                 between('~<div id="brs"[^>]*><g-section-with-header[^>]*~', '</g-section-with-header>',
                     between('~<div class="med" id="extrares">~', '</div><div><div id="foot"', $html)[0])[0]);
