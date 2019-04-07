@@ -61,6 +61,32 @@ Ext.define('Indi.controller.vertifire', {
             },
             gridColumn$Ad_bottom1_Renderer: function(v, s, r) {
                 return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=ad_bottom&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+
+            gridColumn$RelatedQty_old_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=related&mode=old">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Related0_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=related&mode=0" style="color: red;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$RelatedQty_new_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=related&mode=new">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Related1_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=related&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+
+            gridColumn$Snack_packQty_old_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=snack_pack&mode=old">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Snack_pack0_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=snack_pack&mode=0" style="color: red;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Snack_packQty_new_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=snack_pack&mode=new">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Snack_pack1_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=snack_pack&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
             }
         },
         form: {
