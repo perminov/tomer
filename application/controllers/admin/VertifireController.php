@@ -64,7 +64,7 @@ class Admin_VertifireController extends Indi_Controller_Admin {
                 $zero = !$item[$type . 'Qty_old'] && !$item[$type . 'Qty_new'];
 
                 // Foreach prop
-                foreach (ar($props) as $prop) {
+                foreach (ar($props[0]) as $prop) {
 
                     // Shortcut
                     $_ = &$item[$type . '_' . $prop];
