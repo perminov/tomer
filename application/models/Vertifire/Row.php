@@ -335,8 +335,26 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             // Foreach group
             foreach ($groupA as $groupI) {
 
+                // If it's center-col featured_snippet
+                if (preg_match('~=https://support\.google\.com/webmasters/answer/6229325~', $groupI)) {
+
+                    // Pick values
+                    preg_match('~<div.*?class="g.*?"><!--m--><div.*?<div class="rc".*?<div class="r".*?'
+                        . '<a.*?href="([^"]+)".*?><h3.*?>(.*?)</h3><br><div.*?><cite.*?>(.*?)</cite></div></a>~', $groupI, $m);
+                    preg_match('~<!--m--><div.*?aria-level="3" role="heading".*?>(.*?)</div><!--n-->~', $groupI, $m1);
+
+                    // Build featured_snippet data
+                    $results['featured_snippet'] []= [
+                        'rank' => 1,
+                        'position' => ++$total,
+                        'title' => $m[2],
+                        'url' => $m[1],
+                        'display_url' => $m[3],
+                        'description' => strip_tags($m1[1]),
+                    ];
+
                 // If group contains results, having .dbsr css class
-                if ($items = innerHtml('~<div class="dbsr"[^>]*>~', $groupI)) {
+                } else if ($items = innerHtml('~<div class="dbsr"[^>]*>~', $groupI)) {
 
                     // Foreach result item
                     foreach ($items as $item) {
@@ -569,7 +587,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 'title' => $title,
                 'url' => $m1[1],
                 'display_url' => $m2[1],
-                'description' => between('~<div class="kno-rdesc[^"]+"[^>]*><div><h3[^>]+>[^<]+</h3><span>~', '</span>', $rhs)[0]
+                'description' => strip_tags(between('~<div class="kno-rdesc[^"]+"[^>]*><div><h3[^>]+>[^<]+</h3><span>~', '</span>', $rhs)[0])
             ];
         }
 
