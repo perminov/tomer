@@ -146,20 +146,28 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     // Get .kp-body contents
                     $kpbody = between('~<div class="kp-body">~', '</div></div></div><g-immersive-footer>', $node)[0];
 
+                    // Get title
+                    $title = between('~<div class="kno-ecr-pt[^"]+"[^>]+>~', '</div>',
+                        between('~<div class=".*?kp-hc">~', '<div class="kp-body">', $node)[0])[0];
+
+                    // Get desc
+                    $desc = between('~</h3><span>~', '~</span></?(span|div)>~',
+                        between('~<!--m--><div[^>]*><div[^>]*><div[^>]*><div[^>]*>~', '</div></div></div></div><!--n-->', $kpbody)[0])[0];
+
+                    // If got no desc, try another approach to get desc
+                    if (!$desc) $desc = between('~data-attrid="kc:/local:one line summary".*?<!--m-->~', '<!--n--></div>', $node)[0];
+
                     // Pick url
-                    preg_match('~<!--m--><div><a[^>]+href="([^"]+)"~', $kpbody, $m);
+                    preg_match('~<!--m--><div><a[^>]+href="([^"]+)"~', $kpbody, $m) ?: preg_match('~<a class="lua-button" href="([^"]+)"~', $kpbody, $m);
 
                     // Build featured_snippet data
                     $results['featured_snippet'] []= [
                         'rank' => 1,
                         'position' => ++$total,
-                        'title' => strip_tags(between('~<div class="kno-ecr-pt[^"]+"[^>]+>~', '</div>',
-                            between('~<div class="kp-hc">~', '</div><div class="kp-body">', $node)[0]
-                        )[0]),
+                        'title' => strip_tags($title),
                         'url' => $m[1],
                         'display_url' => strip_tags(between('~<!--m--><div><a[^>]+>~', '</a></div><!--n-->', $kpbody)[0]),
-                        'description' => strip_tags(between('~</h3><span>~', '~</span></?(span|div)>~',
-                            between('~<!--m--><div[^>]*><div[^>]*><div[^>]*><div[^>]*>~', '</div></div></div></div><!--n-->', $kpbody)[0])[0]),
+                        'description' => strip_tags($desc),
                     ];
 
                 // Else if it's another markup of featured snippet item
