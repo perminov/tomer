@@ -639,17 +639,17 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             if (in($mode, [0, 1]) && !$prop) return $diff[$type.$mode];
 
             // Foreach prop that we should compare - reset to zero-values
-            foreach ($propA as $prop) $this->{$type . '_' . $prop} = [0, 0, 0];
+            foreach ($propA as $propI) $this->{$type . '_' . $propI} = [0, 0, 0];
 
             // For results, having same urls in both new and old parser's results
             foreach (array_intersect($valA[$type][$key]['old'] ?: [], $valA[$type][$key]['new'] ?: []) as $val) {
 
                 // Foreach prop that we should compare
-                foreach ($propA as $prop) {
+                foreach ($propA as $propI) {
 
                     // Shortcuts
-                    $old = $parser['old'][$type][$val][$prop];
-                    $new = $parser['new'][$type][$val][$prop];
+                    $old = $parser['old'][$type][$val][$propI];
+                    $new = $parser['new'][$type][$val][$propI];
 
                     // Detect diff type
                     $idx = false; if ($old && !$new) $idx = 0; else if (!$old && $new) $idx = 2; else if ($old != $new) $idx = 1;
@@ -667,10 +667,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                             if ($sim < 50) {
 
                                 // Increment counter for that certain diff type
-                                $this->_modified[$type . '_' . $prop][$idx] ++;
+                                $this->_modified[$type . '_' . $propI][$idx] ++;
 
                                 // Collect
-                                $cmp[$type][$prop][$idx][$val] = [
+                                $cmp[$type][$propI][$idx][$val] = [
                                     'old' => $old,
                                     'new' => $new,
                                     'sim' => $sim
@@ -681,10 +681,10 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         } else {
 
                             // Increment counter for that certain diff type
-                            $this->_modified[$type . '_' . $prop][$idx] ++;
+                            $this->_modified[$type . '_' . $propI][$idx] ++;
 
                             // Collect
-                            $cmp[$type][$prop][$idx][$val] = [
+                            $cmp[$type][$propI][$idx][$val] = [
                                 'old' => $old,
                                 'new' => $new
                             ];
@@ -693,11 +693,11 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                 }
             }
 
-            // If $prop arg wa given - return diff for that certain prop
+            // If $prop arg was given - return diff for that certain prop
             if (func_num_args() > 2) return $cmp[$type][$prop][$mode];
 
             // Foreach prop that we should compare - join with ' / '
-            foreach ($propA as $prop) $this->{$type . '_' . $prop} = im($this->{$type . '_' . $prop}, ' / ');
+            foreach ($propA as $propI) $this->{$type . '_' . $propI} = im($this->{$type . '_' . $propI}, ' / ');
         }
 
         // Save
