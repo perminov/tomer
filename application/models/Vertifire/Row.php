@@ -141,7 +141,7 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     }
 
                 // Else if it's a featured snippet item
-                } else if (preg_match('~<div class="kp-blk knowledge-panel[^"]*"~', $node)) {
+                } else if (preg_match('~<div class="kp-blk knowledge-panel[^"]*~', $node)) {
 
                     // Get .kp-body contents
                     $kpbody = between('~<div class="kp-body">~', '</div></div></div><g-immersive-footer>', $node)[0];
@@ -150,7 +150,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                     preg_match('~<!--m--><div><a[^>]+href="([^"]+)"~', $kpbody, $m);
 
                     // Build featured_snippet data
-                    $results['featured_snippet'] = [
+                    $results['featured_snippet'] []= [
+                        'rank' => 1,
+                        'position' => ++$total,
                         'title' => strip_tags(between('~<div class="kno-ecr-pt[^"]+"[^>]+>~', '</div>',
                             between('~<div class="kp-hc">~', '</div><div class="kp-body">', $node)[0]
                         )[0]),
@@ -158,6 +160,25 @@ class Vertifire_Row extends Indi_Db_Table_Row {
                         'display_url' => strip_tags(between('~<!--m--><div><a[^>]+>~', '</a></div><!--n-->', $kpbody)[0]),
                         'description' => strip_tags(between('~</h3><span>~', '~</span></?(span|div)>~',
                             between('~<!--m--><div[^>]*><div[^>]*><div[^>]*><div[^>]*>~', '</div></div></div></div><!--n-->', $kpbody)[0])[0]),
+                    ];
+
+                // Else if it's another markup of featured snippet item
+                } else if (preg_match('~/url\?q=https://support\.google\.com/webmasters/answer/6229325~', $node)) {
+
+                    // Pick values
+                    preg_match('~<div.*?class="g card-section"><!--m--><div.*?<div class="rc".*?<div.*?<div.*?'
+                        . '<h3 class="r".*?<a.*?href="([^"]+)".*?>(.*?)</a></h3></div>'
+                        . '<div class="f.*?<div.*?<cite.*?>(.*?)</cite>~', $node, $m);
+                    preg_match('~<!--m--><div.*?aria-level="3" role="heading".*?>(.*?)</div><!--n-->~', $node, $m1);
+
+                    // Build featured_snippet data
+                    $results['featured_snippet'] []= [
+                        'rank' => 1,
+                        'position' => ++$total,
+                        'title' => $m[2],
+                        'url' => $m[1],
+                        'display_url' => $m[3],
+                        'description' => strip_tags($m1[1]),
                     ];
 
                 //
@@ -534,7 +555,9 @@ class Vertifire_Row extends Indi_Db_Table_Row {
             preg_match('~<span class="ellip">([^<]+)</span></a></div><!--n--></div>~', $rhs, $m2);
 
             // Assign and append
-            $results['featured_snippet'] = [
+            $results['featured_snippet'] []= [
+                'rank' => 1,
+                'position' => ++$total,
                 'title' => $title,
                 'url' => $m1[1],
                 'display_url' => $m2[1],
