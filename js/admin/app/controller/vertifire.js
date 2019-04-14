@@ -100,6 +100,19 @@ Ext.define('Indi.controller.vertifire', {
             },
             gridColumn$Top_stories1_Renderer: function(v, s, r) {
                 return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=top_stories&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+            
+            gridColumn$Featured_snippetQty_old_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=featured_snippet&mode=old">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Featured_snippet0_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=featured_snippet&mode=0" style="color: red;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Featured_snippetQty_new_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=featured_snippet&mode=new">' + v + '</a>' : '<span style="color: lightgray;">' + v + '</span>';
+            },
+            gridColumn$Featured_snippet1_Renderer: function(v, s, r) {
+                return v ? '<a load="/vertifire/view/id/'+ r.get('id')+'/?type=featured_snippet&mode=1" style="color: lime;">' + v + '</a>': '<span style="color: lightgray;">' + v + '</span>';
             }
         },
         form: {
